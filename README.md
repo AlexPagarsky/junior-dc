@@ -1,1 +1,1 @@
-# junior_dc
+# junior-dc
