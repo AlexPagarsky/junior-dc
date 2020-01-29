@@ -38,7 +38,7 @@ CREATE TABLE goods (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255),
     category VARCHAR(255) REFERENCES categories(category_name),
-    price NUMERIC(16,2)
+    price NUMERIC(16,2) NOT NULL
 );
 
 

@@ -32,7 +32,7 @@ INSERT INTO categories (category_name) VALUES
 CREATE TABLE goods (
     name VARCHAR(255),
     category VARCHAR(255) REFERENCES categories(category_name),
-    price NUMERIC(16,2)
+    price NUMERIC(16,2) NOT NULL
 );
 
 
