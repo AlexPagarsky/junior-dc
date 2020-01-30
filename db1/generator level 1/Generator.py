@@ -1,32 +1,63 @@
 from typing import List
-import yaml
-import os.path
+
+import yaml  # pip install PyYAML
 
 
-def generator(file: str, timestamps: bool) -> List[str]:
+def generator(file: str, timestamps: bool = False, multiline: bool = False) -> List[str]:
     statements = []
+
+    separator, indent = ('\n', '\t') if multiline else (' ', '')
 
     with open(file, 'r') as f:
         data = yaml.load(f, Loader=yaml.FullLoader)
 
         for name, outer in data.items():
-            statement = ['CREATE TABLE ', name, ' ( ']
+            statement = ['CREATE TABLE ', name, ' (', separator]
 
-            for _, fields in outer.items():
-                statement.extend((name.lower(), '_id', ' SERIAL PRIMARY KEY, '))
-                for var, data_type in fields.items():
-                    statement.extend((name.lower(), '_', var, ' ', data_type, ', '))
+            for fields in outer.values():
+                statement.extend((indent, name.lower() + '_id', ' SERIAL PRIMARY KEY,', separator))
+                for var_name, data_type in fields.items():
+                    statement.extend((indent, name.lower(), '_' + var_name, ' ', data_type.upper(), ',', separator))
+
+            # TODO: Merge two if's, stupid sooqa
+            if timestamps:
+                statement.extend(
+                    (indent, name.lower(), '_created TIMESTAMP DEFAULT current_timestamp', ',', separator,
+                     indent, name.lower(), '_updated TIMESTAMP DEFAULT current_timestamp', separator, ',')
+                )
+
+            statement[-1] = ');'
+            statements.append(''.join(statement))
 
             if timestamps:
-                statements.extend()
+                statements.append(
+                    ''.join(
+                        (
+                            'CREATE FUNCTION update_date() RETURNS TRIGGER', separator,
+                            'LANGUAGE plpgsql',separator,
+                            'AS $update$', separator,
+                            'BEGIN', separator,
+                            indent, 'NEW.'+ name.lower() + 'updated := current_timestamp;', separator,
+                            indent, 'RETURN NEW;', separator,
+                            'END;', separator,
+                            '$update$;'
+                        )
+                    )
+                )
 
-            statement[-1] = ' );'
-            statements.append(''.join(statement))
+                statements.append(
+                    ''.join(
+                        ('CREATE TRIGGER update_time AFTER UPDATE ON ', name, separator,
+                         'FOR EACH STATEMENT', separator,
+                         'EXECUTE PROCEDURE update_date();', separator)
+                    )
+                )
+            # TODO: Finish second trigger
 
     return statements
 
 
 if __name__ == "__main__":
-    statements = generator(file='scheme.yaml', timestamps=False)
-    for i in statements:
-        print(i)
+    statements = generator(file='scheme.yaml', timestamps=True, multiline=True)
+    for query in statements:
+        print(query, '\n')
