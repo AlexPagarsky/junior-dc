@@ -15,6 +15,7 @@ def generator(file: str, timestamps: bool = False, multiline: bool = False) -> L
             statement = ['CREATE TABLE ', name, ' (', separator]
             fields = outer['fields']
             statement.extend((indent, name.lower() + '_id', ' SERIAL PRIMARY KEY,', separator))
+
             for var_name, data_type in fields.items():
                 statement.extend((indent, name.lower(), '_' + var_name, ' ', data_type.upper(), ',', separator))
 
