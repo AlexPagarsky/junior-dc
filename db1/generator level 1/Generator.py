@@ -14,10 +14,13 @@ def generator(file: str, timestamps: bool = False, multiline: bool = False) -> L
         for name, outer in data.items():
             statement = ['CREATE TABLE ', name, ' (', separator]
 
-            for fields in outer.values():
-                statement.extend((indent, name.lower() + '_id', ' SERIAL PRIMARY KEY,', separator))
-                for var_name, data_type in fields.items():
-                    statement.extend((indent, name.lower(), '_' + var_name, ' ', data_type.upper(), ',', separator))
+            # Old way to handle fields(saved just in case)
+            # for fields in outer.values():
+
+            fields = outer['fields']
+            statement.extend((indent, name.lower() + '_id', ' SERIAL PRIMARY KEY,', separator))
+            for var_name, data_type in fields.items():
+                statement.extend((indent, name.lower(), '_' + var_name, ' ', data_type.upper(), ',', separator))
 
             # TODO: Merge two if's, stupid sooqa
             if timestamps:
@@ -25,7 +28,6 @@ def generator(file: str, timestamps: bool = False, multiline: bool = False) -> L
                     (indent, name.lower(), '_created TIMESTAMP DEFAULT current_timestamp', ',', separator,
                      indent, name.lower(), '_updated TIMESTAMP DEFAULT current_timestamp', separator, ',')
                 )
-
             statement[-1] = ');'
             statements.append(''.join(statement))
 
@@ -37,7 +39,7 @@ def generator(file: str, timestamps: bool = False, multiline: bool = False) -> L
                             'LANGUAGE plpgsql',separator,
                             'AS $update$', separator,
                             'BEGIN', separator,
-                            indent, 'NEW.'+ name.lower() + 'updated := current_timestamp;', separator,
+                            indent, 'NEW.' + name.lower() + '_updated := current_timestamp;', separator,
                             indent, 'RETURN NEW;', separator,
                             'END;', separator,
                             '$update$;'
@@ -52,7 +54,7 @@ def generator(file: str, timestamps: bool = False, multiline: bool = False) -> L
                          'EXECUTE PROCEDURE update_date();', separator)
                     )
                 )
-            # TODO: Finish second trigger
+            # TODO: Finish second trigger (?)
 
     return statements
 
