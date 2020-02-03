@@ -13,10 +13,6 @@ def generator(file: str, timestamps: bool = False, multiline: bool = False) -> L
 
         for name, outer in data.items():
             statement = ['CREATE TABLE ', name, ' (', separator]
-
-            # Old way to handle fields(saved just in case)
-            # for fields in outer.values():
-
             fields = outer['fields']
             statement.extend((indent, name.lower() + '_id', ' SERIAL PRIMARY KEY,', separator))
             for var_name, data_type in fields.items():
