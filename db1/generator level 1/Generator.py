@@ -28,10 +28,6 @@ def generator(file: str, timestamps: bool = False, multiline: bool = False) -> L
                     (indent, name.lower(), '_created TIMESTAMP DEFAULT current_timestamp', ',', separator,
                      indent, name.lower(), '_updated TIMESTAMP DEFAULT current_timestamp', separator, ',')
                 )
-            statement[-1] = ');'
-            statements.append(''.join(statement))
-
-            if timestamps:
                 statements.append(
                     ''.join(
                         (
@@ -54,6 +50,9 @@ def generator(file: str, timestamps: bool = False, multiline: bool = False) -> L
                          'EXECUTE PROCEDURE update_date();', separator)
                     )
                 )
+            statement[-1] = ');'
+            statements.insert(-2, ''.join(statement))
+
             # TODO: Finish second trigger (?)
 
     return statements
